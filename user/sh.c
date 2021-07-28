@@ -108,6 +108,7 @@ runcmd(struct cmd *cmd)
       close(p[1]);
       runcmd(pcmd->left);
     }
+    
     if(fork1() == 0){
       close(0);
       dup(p[0]);
