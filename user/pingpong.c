@@ -14,15 +14,9 @@ main(int argc, char *argv[])
 	{
 		close(p1[0]);
 		close(p2[1]);
-		
-		int t;
-		for(int i=0;i<10;i++)
-		{
-			read(p2[0],&t,1);
-			//int id = getpid();
-			printf("%d: received %s\n",t,buf);			
-		}
-
+		int id=getpid();
+		read(p2[0],buf,8192);
+		printf("%d: received %s\n",id,buf);
 		write(p1[1],"pong",4);
 	}
 	else
@@ -30,11 +24,9 @@ main(int argc, char *argv[])
 		close(p1[1]);
 		close(p2[0]);
 		int id = getpid();
-		for(int i=0;i<10;i++)
-		{
-			write(p2[1],&id,4);
-		}
-		
+
+		write(p2[1],"ping",4);
+
 		read(p1[0],buf,8192);
 		printf("%d: received %s\n",id,buf);
 		
