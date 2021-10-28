@@ -59,6 +59,7 @@ binit(void)
 uint hash(uint a1,uint a2)
 {
 	return 0;
+	//return (a1+1)*(a2+1)%bcacheNum;
 }
 
 // Look through buffer cache for block on device dev.
@@ -81,17 +82,14 @@ bget(uint dev, uint blockno)
       return b;
     }
   }
+  release(&bcache[hid].lock);
   // Not cached.
   // Recycle the least recently used (LRU) unused buffer.
   
-  for(int i=0;i<bcacheNum;i++)
-  {
-   if(i!=hid)
-	acquire(&bcache[i].lock);
-  }
   int chosi=-1;
   for(int i=0;i<bcacheNum;i++)
   {
+    acquire(&bcache[i].lock);
   	for(struct buf *t = bcache[i].head.next;t!=&bcache[i].head;t=t->next)
   	{
   	  if(t->refcnt==0)
@@ -103,14 +101,16 @@ bget(uint dev, uint blockno)
   	  	}
   	  	else if(t->ticks<b->ticks)
   	  	{
+			if(chosi!=hid&&chosi!=i)
+			{
+				release(&bcache[chosi].lock); 	  	 		  			
+			}
   	  		chosi=i;
   	  		b=t;
+
   	  	}
   	  }
   	}
-  }
-  for(int i=0;i<bcacheNum;i++)
-  {
     if(i!=chosi&&i!=hid)
   	release(&bcache[i].lock);
   }
