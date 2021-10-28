@@ -58,8 +58,8 @@ binit(void)
 
 uint hash(uint a1,uint a2)
 {
-	return 0;
-	//return (a1+1)*(a2+1)%bcacheNum;
+//	return 0;
+	return (a1+1)*(a2+1)%bcacheNum;
 }
 
 // Look through buffer cache for block on device dev.
@@ -90,6 +90,26 @@ bget(uint dev, uint blockno)
   for(int i=0;i<bcacheNum;i++)
   {
     acquire(&bcache[i].lock);
+    if(i==hid)
+    {
+    	//double check for dont map twice
+      
+	  for(struct buf *b = bcache[hid].head.next; b != &bcache[hid].head; b = b->next){
+
+		if(b->dev == dev && b->blockno == blockno ){
+
+		 if(chosi!=-1)
+		 {
+		 	release(&bcache[chosi].lock);
+		 }
+		 
+		  b->refcnt++;
+		  release(&bcache[hid].lock);
+		  acquiresleep(&b->lock);
+		  return b;
+		}
+	  }
+    }
   	for(struct buf *t = bcache[i].head.next;t!=&bcache[i].head;t=t->next)
   	{
   	  if(t->refcnt==0)
